@@ -61,9 +61,9 @@ public class MsgController {
     }
 
     //TODO: Property based filtering
-    @JmsListener(destination = "spring-queue", selector = "Priority = 'Q1'")
+/*    @JmsListener(destination = "test.destination::test.queue")
     public void receiveMessage(Person person){
         persons.add(person);
         log.info("Message Received: {}", person);
-    }
+    }*/
 }
