@@ -1,0 +1,4 @@
+addresses,queues
+orders.address,orders.queue
+invoices.address,invoices.queue
+notifications.address,notifications.queue
