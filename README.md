@@ -36,3 +36,15 @@ mvn clean package
     ````
   **Note:** The get api will return the result of the person whose age is above 60. 
 
+##
+Create queue script usage example:
+
+````shell
+./create-queues.sh \
+  --user userid \
+  --password secret \
+  --broker-urls "(tcp://127.0.0.1:61616,tcp://127.0.0.1:61617)?sslEnabled=true&verifyHost=false&trustStoreType=PKCS12&trustStorePath=truststore.p12&trustStorePassword=changeit" \
+  --artemis-bin /opt/artemis/amq-broker/bin \
+  --input-file queues.csv \
+  --log-file queue-creation.log
+````
