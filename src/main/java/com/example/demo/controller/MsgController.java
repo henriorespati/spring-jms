@@ -47,6 +47,12 @@ public class MsgController {
     @Value("${spring.artemis.broker-url}")
     String BROKER_URL;
 
+    @Value("${spring.artemis.user}")
+    String BROKER_USERNAME;
+
+    @Value("${spring.artemis.password}")
+    String BROKER_PASSWORD;
+
     @Value("${spring.artemis.queue}")
     private String queue;
 
@@ -88,7 +94,7 @@ public class MsgController {
         try (
                 ServerLocator locator = ActiveMQClient.createServerLocator(brokerUrl);
                 ClientSessionFactory factory = locator.createSessionFactory();
-                ClientSession session = factory.createSession("admin", "admin", false, true, true, false, 0)) {
+                ClientSession session = factory.createSession(BROKER_USERNAME, BROKER_PASSWORD, false, true, true, false, 0)) {
             SimpleString address = SimpleString.toSimpleString(queueName);
             SimpleString name = SimpleString.toSimpleString(queueName);
 
