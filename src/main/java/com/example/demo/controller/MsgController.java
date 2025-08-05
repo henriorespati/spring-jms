@@ -80,7 +80,7 @@ public class MsgController {
     public void init() {
         List<String> brokerUrls = extractBrokerUrls(BROKER_URL);
         for (String url : brokerUrls) {
-            // createQueue(url, queue, true);
+            createQueue(url, queue, true);
         }
     }
 
