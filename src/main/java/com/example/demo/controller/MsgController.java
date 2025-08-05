@@ -3,6 +3,15 @@ package com.example.demo.controller;
 
 import com.example.demo.model.Person;
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.activemq.artemis.api.core.QueueConfiguration;
+import org.apache.activemq.artemis.api.core.RoutingType;
+import org.apache.activemq.artemis.api.core.SimpleString;
+import org.apache.activemq.artemis.api.core.client.ActiveMQClient;
+import org.apache.activemq.artemis.api.core.client.ClientSession;
+import org.apache.activemq.artemis.api.core.client.ClientSession.QueueQuery;
+import org.apache.activemq.artemis.api.core.client.ClientSessionFactory;
+import org.apache.activemq.artemis.api.core.client.ServerLocator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -16,12 +25,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.Session;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
@@ -31,6 +43,9 @@ public class MsgController {
 
     @Autowired
     private JmsTemplate jmsTemplate;
+
+    @Value("${spring.artemis.broker-url}")
+    String BROKER_URL;
 
     @Value("${spring.artemis.queue}")
     private String queue;
@@ -58,6 +73,65 @@ public class MsgController {
             jmsTemplate.convertAndSend(queue, person);
         }
         return person;
+    }
+
+    // Create queue when application starts
+    @PostConstruct
+    public void init() {
+        List<String> brokerUrls = extractBrokerUrls(BROKER_URL);
+        for (String url : brokerUrls) {
+            // createQueue(url, queue, true);
+        }
+    }
+
+    private void createQueue(String brokerUrl, String queueName, boolean durable) {
+        try (
+                ServerLocator locator = ActiveMQClient.createServerLocator(brokerUrl);
+                ClientSessionFactory factory = locator.createSessionFactory();
+                ClientSession session = factory.createSession("admin", "admin", false, true, true, false, 0)) {
+            SimpleString address = SimpleString.toSimpleString(queueName);
+            SimpleString name = SimpleString.toSimpleString(queueName);
+
+            QueueQuery query = session.queueQuery(name);
+            if (!query.isExists()) {
+                QueueConfiguration queueConfig = new QueueConfiguration(name)
+                        .setAddress(address)
+                        .setDurable(durable)
+                        .setRoutingType(RoutingType.ANYCAST); 
+
+                session.createQueue(queueConfig);
+                log.info("Queue '" + queueName + "' created.");
+            } else {
+                log.info("Queue '" + queueName + "' already exists.");
+            }
+
+        } catch (Exception e) {
+            log.error("Failed to create queue: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public static List<String> extractBrokerUrls(String brokerUri) {
+        int start = brokerUri.indexOf('(');
+        int end = brokerUri.indexOf(')');
+
+        if (start >= 0 && end > start) {
+            // Extract broker URLs
+            String uris = brokerUri.substring(start + 1, end);
+
+            // Extract query parameters (after '?')
+            int queryStart = brokerUri.indexOf('?', end);
+            final String query = (queryStart > 0) ? brokerUri.substring(queryStart) : "";
+
+            // Combine each URL with query
+            return Arrays.stream(uris.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .map(url -> url + query)
+                    .collect(Collectors.toList());
+        } else {
+            throw new IllegalArgumentException("Invalid brokerUri format: missing ( )");
+        }
     }
 
     //TODO: Property based filtering
