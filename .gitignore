@@ -43,3 +43,5 @@ target/*jar*
 Footer
 .DS_Store
 truststore*
+
+notes.*

@@ -2,16 +2,12 @@ package com.example.demo.bean;
 
 
 import com.example.demo.AmqConsumer;
-import jakarta.jms.ConnectionFactory;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import jakarta.jms.JMSException;
-import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
-import org.springframework.jms.config.JmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.listener.MessageListenerContainer;
@@ -78,6 +74,10 @@ public class AmqBean {
         container.setDestinationName(queue);
         //container.setAutoStartup(true);
         container.setMessageListener(amqConsumer);
+        container.setExceptionListener(e -> {
+            // Handle exception
+            System.err.println("Exception in message listener: " + e.getMessage());
+        });
         return container;
     }
 }
