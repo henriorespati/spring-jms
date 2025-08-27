@@ -26,7 +26,7 @@ target/classes
 target/generated-sources
 target/maven-archiver
 target/maven-status
-# target/*jar*
+target/*jar*
 
 # Packages #
 ############
@@ -36,7 +36,7 @@ target/maven-status
 *.dmg
 *.gz
 *.iso
-# *.jar
+*.jar
 *.rar
 *.tar
 *.zip
